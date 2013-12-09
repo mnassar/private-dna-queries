@@ -8,14 +8,16 @@ import random
 import time 
 import cPickle as pickle 
 acgt="ACGT"
-path_="C:\Users\NASSAR\SkyDrive\Documents\DNA"
-file_=path_+"\\tests\\records.txt"
+path_="C:\Users\NASSAR\Documents\DNA_"
+file_=path_+"\\tests\\records2.txt"
 
 #ToDo : Map Reduce 
 
 
 
-def share_records(file_, share1, share2): # storage
+def share_records(file_): # storage
+    share1=[[[0,0,0,0] for y in range(m)] for x in range(n)]
+    share2=[[[0,0,0,0] for y in range(m)] for x in range(n)]
     input_=open(file_,'r')
     x=0
     line=" "
@@ -62,13 +64,14 @@ def generate_database(n,m,file_):
     output.close()
     
 if __name__ == '__main__':
+    print time.time()
     #Parameter m : number of characters in a sequence 
     #Parameter n: number of sequences
     
     #import sys
     #n=int(sys.argv[1])
     #m=int(sys.argv[2])
-    n=5000
+    n=20000
     m=300
     print time.asctime(time.localtime())
 
@@ -81,14 +84,10 @@ if __name__ == '__main__':
     print "database generation %.2f s" % (stop-start)
     # share database
     start=time.time() 
-    share1=[[[0,0,0,0] for y in range(m)] for x in range(n)]
-    share2=[[[0,0,0,0] for y in range(m)] for x in range(n)]
+    
     #print_store(share1, share2)
-    share1, share2= share_records(file_, share1, share2)
-    stop=time.time()
-    print "sharing time %.2f s"% (stop-start)     
-    print share1[0][0]
-    print share2[0][0]
+    share1, share2= share_records(file_)
+   
     #print_store(share1, share2)
 #    save shares to cloud (bucket) (no longer used because Volume is better)
 #    start=time.time()
@@ -104,14 +103,18 @@ if __name__ == '__main__':
     share2_file= open (path_+"\\shares\\share2",'w')
     share2_file.write(pickle.dumps(share2))
     share2_file.close()
+    stop=time.time()
+    print "sharing time %.2f s"% (stop-start)     
+    print share1[0][0]
+    print share2[0][0]
     
     # create a volume (run only once)
     #cloud.volume.create("shares","shares")
-    print "synchronizing ... please wait ..."
-    start=time.time()
-    cloud.volume.sync(path_+"\\shares\\", "shares:")
-    stop=time.time()
-    print "synchronizing volume shares: time %.2f s" % (stop-start) 
+#    print "synchronizing ... please wait ..."
+#    start=time.time()
+#    cloud.volume.sync(path_+"\\shares\\", "shares:")
+#    stop=time.time()
+#    print "synchronizing volume shares: time %.2f s" % (stop-start) 
 #    # read shares from files (for verification) 
 #    share1_file= open ("C:\Users\NASSAR\SkyDrive\Documents\DNA\\shares\\share1",'r')
 #    share1=pickle.load(share1_file)
