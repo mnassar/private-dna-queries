@@ -1,6 +1,16 @@
 import random
 import sys
 
+import time
+def timing(f):
+    def wrap(*args):
+        time1 = time.time()
+        ret = f(*args)
+        time2 = time.time()
+        clocktime=time2-time1
+        print '%s function took %0.3f ms' % (f.func_name, (clocktime)*1000.0)
+        return ret, clocktime 
+    return wrap
 def ipow(a, b, n):
     """calculates (a**b) % n via binary exponentiation, yielding itermediate
        results as Rabin-Miller requires"""
@@ -61,3 +71,12 @@ def generate_prime(bits, k=None):
         if is_probably_prime(possible, k):
             return possible
 
+if __name__ == '__main__':
+    t_generate_prime=timing(generate_prime)
+    clocktime_avg=0
+    for x in range(10):
+        p, t =t_generate_prime(32)
+        clocktime_avg+=t
+        print p 
+        print p.bit_length()
+    print clocktime_avg/10 
