@@ -3,8 +3,7 @@
 from paillier import *
 
 print "Generating keypair..."
-priv, pub = generate_keypair(512)
-
+priv, pub = generate_keypair(64)
 x = 3
 print "x =", x
 print "Encrypting x..."

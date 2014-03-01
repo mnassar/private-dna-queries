@@ -9,7 +9,7 @@ import time
 import random
 import sys
 sys.path.append("paillier-master")
-from paillier import generate_keypair, encrypt, decrypt, e_add, e_mul_const,\
+from paillier_gmpy2 import generate_keypair, encrypt, decrypt, e_add, e_mul_const,\
     e_add_const
 import pickle
 acgt="ACGT"
@@ -167,9 +167,9 @@ def decrypt_database_0(path_, file_, file_d_):
                 letter='G'
             elif a==1 and b==1: 
                 letter='T'
-            print letter, 
+#            print letter, 
             out_.write(letter)
-        print 
+#        print 
         out_.write("\n")
     out_.close()
     in_.close()
@@ -194,18 +194,18 @@ def decrypt_database_1(path_, file_, file_d_):
         for y in range(len(hA[0])): 
             if decrypt(priv,pub, hA[x][y])==1: 
                 out_.write('A')
-                print 'A',
+#                print 'A',
             elif decrypt(priv,pub, hC[x][y])==1:
                 out_.write('C')
-                print 'C',
+#                print 'C',
             elif decrypt(priv,pub, hG[x][y])==1:
                 out_.write('G')
-                print 'G',
+#                print 'G',
             elif decrypt(priv,pub, hT[x][y])==1:
                 out_.write('T')
-                print 'T',
+#                print 'T',
         out_.write("\n")
-        print 
+#        print 
     
     out_.close()
     in_.close()
@@ -335,157 +335,159 @@ def handle_query_clear(query, path_, file_):
                 res+=1 
         if res==len(query): 
             rres+=1
-            print line, 
+#            print line, 
     return rres 
-parser = argparse.ArgumentParser(description='Process counting queries over encrypted DNA database')
-parser.add_argument('-pi',  help='run on picloud', action="store_true")
-parser.add_argument('-gk', metavar='bitlength',  help='generate key pair, store on pub.txt and priv.txt', type=int)
-parser.add_argument('-gd', nargs=2, metavar=('n', 'm'), help='generate random database, n is number of sequences, m is number of letters per sequence, store to records.txt', type=int)
-parser.add_argument('-ed',  help='encrypt database: (0) binary mode, store in Erecords.txt \
-                                                    (1) quaternary mode, store in ErecordsQ.txt'
-                                                    , choices=[0,1], type= int)
-parser.add_argument('-dd',  help='decrypt database: (0) binary mode, decrypts from Erecords.txt \
-                                                    (1) quaternary mode, decrypts from ErecordsQ.txt ', 
-                                                    choices=[0,1], type=int)
-parser.add_argument('-gq', nargs=2, metavar=('l', 'm'),  help='generate random query of l positions among m', type=int)
-parser.add_argument('-eq',  help='execute query: (0) on binary mode, using Erecords.txt \
-                                                    (1) on quaternary mode, using ErecordsQ.txt ', 
-                                                    choices=[0,1], type=int)
-parser.add_argument('-v', '--verify',  help='run query on plain-text database', action="store_true")
-parser.add_argument('-s', '--sync',  help='(0) synchronize cloud\'s folder to local folder and exit; \
-            (1) synchronize local folder to cloud\'s folder and exit', type=int, choices=[0,1])
-args = parser.parse_args()
 
-if args.sync==0:
-    print "synchronize cloud\'s folder to local folder and exit;"
-    cloud.volume.sync('dna-db:', './dna-db')
-    exit()
-elif args.sync==1:
-    print "synchronize local folder to cloud\'s folder and exit;"
-    cloud.volume.sync('./dna-db', 'dna-db:')
-    exit()
-if args.pi: 
-    print "running on cloud"
-    path_="/home/picloud/dna-db/"
-    if args.gk:
-        bitlength=args.gk
-        jid=cloud.call(generate_keys, path_, bitlength, _vol="dna-db");
-        cloud.join(jid)
-        print 'job function took %0.3f ms' % (cloud.info(jid).get(jid).get('runtime')*1000) 
-        print cloud.info(jid).get(jid).get('stdout').strip()
-        print cloud.result(jid)
-    if args.gd:
-        n=args.gd[0]
-        m=args.gd[1]
-        jid=cloud.call(generate_database, path_, file_, n, m, _vol="dna-db"); 
-        cloud.join(jid)
-        print 'job took %0.3f s' % (cloud.info(jid).get(jid).get('runtime')) 
-        print cloud.info(jid).get(jid).get('stdout').strip()
-        print cloud.result(jid)
-    if args.ed==0: 
-        print "encrypt database using binary mode"
-        jid=cloud.call(encrypt_database_0, path_, file_, file_e_0, _vol="dna-db")
-        cloud.join(jid)
-        print 'job took %0.3f s' % (cloud.info(jid).get(jid).get('runtime'))
-        print cloud.info(jid).get(jid).get('stdout').strip()
-        print cloud.result(jid)
-        
-    elif args.ed==1: 
-        print "encrypt database using quaternary mode"
-        jid=cloud.call(encrypt_database_1, path_, file_, file_e_1, _vol="dna-db")
-        cloud.join(jid)
-        print 'job took %0.3f s' % (cloud.info(jid).get(jid).get('runtime'))
-        print cloud.info(jid).get(jid).get('stdout').strip()
-        print cloud.result(jid)
-    if args.dd==0: 
-        print "decrypt database from binary mode"
-        jid=cloud.call(decrypt_database_0, path_, file_e_0, file_d_0,  _vol="dna-db")
-        cloud.join(jid)
-        print 'job took %0.3f s' % (cloud.info(jid).get(jid).get('runtime'))
-        print cloud.info(jid).get(jid).get('stdout').strip()
-        print cloud.result(jid)
-    elif  args.dd==1:
-        print "decrypt database from quaternary mode"
-        jid=cloud.call(decrypt_database_1, path_, file_e_1, file_d_1,  _vol="dna-db")
-        cloud.join(jid)
-        print 'job took %0.3f s' % (cloud.info(jid).get(jid).get('runtime'))
-        print cloud.info(jid).get(jid).get('stdout').strip()
-        print cloud.result(jid)
-    if args.gq:
-        le=args.gq[0]
-        m=args.gq[1]
-        print "generate random query" 
-        jid=cloud.call(query_generator, le, m, _vol="dna-db")
-        cloud.join(jid)
-        print 'job took %0.3f s' % (cloud.info(jid).get(jid).get('runtime'))
-        print cloud.info(jid).get(jid).get('stdout').strip()
-        query = cloud.result(jid)
-        print query
-        if args.eq==0: 
-            print "execute query on binary mode"
-            jid=cloud.call(handle_query_0, query, path_, file_e_0, _vol="dna-db")
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser(description='Process counting queries over encrypted DNA database')
+    parser.add_argument('-pi',  help='run on picloud', action="store_true")
+    parser.add_argument('-gk', metavar='bitlength',  help='generate key pair, store on pub.txt and priv.txt', type=int)
+    parser.add_argument('-gd', nargs=2, metavar=('n', 'm'), help='generate random database, n is number of sequences, m is number of letters per sequence, store to records.txt', type=int)
+    parser.add_argument('-ed',  help='encrypt database: (0) binary mode, store in Erecords.txt \
+                                                        (1) quaternary mode, store in ErecordsQ.txt'
+                                                        , choices=[0,1], type= int)
+    parser.add_argument('-dd',  help='decrypt database: (0) binary mode, decrypts from Erecords.txt \
+                                                        (1) quaternary mode, decrypts from ErecordsQ.txt ', 
+                                                        choices=[0,1], type=int)
+    parser.add_argument('-gq', nargs=2, metavar=('l', 'm'),  help='generate random query of l positions among m', type=int)
+    parser.add_argument('-eq',  help='execute query: (0) on binary mode, using Erecords.txt \
+                                                        (1) on quaternary mode, using ErecordsQ.txt ', 
+                                                        choices=[0,1], type=int)
+    parser.add_argument('-v', '--verify',  help='run query on plain-text database', action="store_true")
+    parser.add_argument('-s', '--sync',  help='(0) synchronize cloud\'s folder to local folder and exit; \
+                (1) synchronize local folder to cloud\'s folder and exit', type=int, choices=[0,1])
+    args = parser.parse_args()
+    
+    if args.sync==0:
+        print "synchronize cloud\'s folder to local folder and exit;"
+        cloud.volume.sync('dna-db:', './dna-db')
+        exit()
+    elif args.sync==1:
+        print "synchronize local folder to cloud\'s folder and exit;"
+        cloud.volume.sync('./dna-db', 'dna-db:')
+        exit()
+    if args.pi: 
+        print "running on cloud"
+        path_="/home/picloud/dna-db/"
+        if args.gk:
+            bitlength=args.gk
+            jid=cloud.call(generate_keys, path_, bitlength, _vol="dna-db");
             cloud.join(jid)
-            print 'job took %0.3f ms' % (cloud.info(jid).get(jid).get('runtime')*1000)
-            print cloud.info(jid).get(jid).get('stdout').strip()
-            res=cloud.result(jid)
-            print res.count(0)
-        elif args.eq==1: 
-            print "execute query on quaternary mode"
-            jid=cloud.call(handle_query_1, query, path_, file_e_1, _vol="dna-db")
-            cloud.join(jid)
-            print 'job took %0.3f ms' % (cloud.info(jid).get(jid).get('runtime')*1000)
-            print cloud.info(jid).get(jid).get('stdout').strip()
-            res=cloud.result(jid)
-            print res.count(0)
-        if args.verify: 
-            print "verification on clear database"
-            jid = cloud.call(handle_query_clear, query, path_, file_, _vol="dna-db")
-            cloud.join(jid)
-            print 'job took %0.3f ms' % (cloud.info(jid).get(jid).get('runtime')*1000)
+            print 'job function took %0.3f ms' % (cloud.info(jid).get(jid).get('runtime')*1000) 
             print cloud.info(jid).get(jid).get('stdout').strip()
             print cloud.result(jid)
-    if args.eq!=None and args.gq ==None: 
-        print "sorry! -eq must be coupled with -gq"         
-else: 
-    print "running locally"
-    path_="dna-db/"
-    if args.gk:
-        bitlength=args.gk
-        print generate_keys(path_, bitlength)
-    if args.gd: 
-        n=args.gd[0]
-        m=args.gd[1]
-        print generate_database(path_, file_, n, m) 
-    if args.ed==0: 
-        print "encrypt database using binary mode"
-        print encrypt_database_0(path_, file_, file_e_0)
-    elif args.ed==1: 
-        print "encrypt database using quaternary mode"
-        print encrypt_database_1(path_, file_, file_e_1)
-    if args.dd==0: 
-        print "decrypt database from binary mode"
-        decrypt_database_0(path_, file_e_0, file_d_0)
-    elif  args.dd==1:
-        print "decrypt database from quaternary mode"
-        decrypt_database_1(path_, file_e_1, file_d_1)
-    if args.gq:
-        le=args.gq[0] 
-        m=args.gq[1] 
-        print "generate random query"
-        query = query_generator(le,m)
-        print query
-        if args.eq==0: 
-            print "execute query on binary mode"
-            res=handle_query_0 (query, path_, file_e_0).count(0)
-            print res 
-        elif args.eq==1: 
-            print "execute query on quaternary mode"
-            res=handle_query_1 (query, path_, file_e_1).count(0)
-            print res
-        if args.verify: 
-            print "verification on clear database"
-            print handle_query_clear (query, path_, file_)
+        if args.gd:
+            n=args.gd[0]
+            m=args.gd[1]
+            jid=cloud.call(generate_database, path_, file_, n, m, _vol="dna-db"); 
+            cloud.join(jid)
+            print 'job took %0.3f s' % (cloud.info(jid).get(jid).get('runtime')) 
+            print cloud.info(jid).get(jid).get('stdout').strip()
+            print cloud.result(jid)
+        if args.ed==0: 
+            print "encrypt database using binary mode"
+            jid=cloud.call(encrypt_database_0, path_, file_, file_e_0, _vol="dna-db")
+            cloud.join(jid)
+            print 'job took %0.3f s' % (cloud.info(jid).get(jid).get('runtime'))
+            print cloud.info(jid).get(jid).get('stdout').strip()
+            print cloud.result(jid)
             
-    if args.eq!=None and args.gq ==None: 
-        print "sorry! -eq must be coupled with -gq"    
+        elif args.ed==1: 
+            print "encrypt database using quaternary mode"
+            jid=cloud.call(encrypt_database_1, path_, file_, file_e_1, _vol="dna-db")
+            cloud.join(jid)
+            print 'job took %0.3f s' % (cloud.info(jid).get(jid).get('runtime'))
+            print cloud.info(jid).get(jid).get('stdout').strip()
+            print cloud.result(jid)
+        if args.dd==0: 
+            print "decrypt database from binary mode"
+            jid=cloud.call(decrypt_database_0, path_, file_e_0, file_d_0,  _vol="dna-db")
+            cloud.join(jid)
+            print 'job took %0.3f s' % (cloud.info(jid).get(jid).get('runtime'))
+            print cloud.info(jid).get(jid).get('stdout').strip()
+            print cloud.result(jid)
+        elif  args.dd==1:
+            print "decrypt database from quaternary mode"
+            jid=cloud.call(decrypt_database_1, path_, file_e_1, file_d_1,  _vol="dna-db")
+            cloud.join(jid)
+            print 'job took %0.3f s' % (cloud.info(jid).get(jid).get('runtime'))
+            print cloud.info(jid).get(jid).get('stdout').strip()
+            print cloud.result(jid)
+        if args.gq:
+            le=args.gq[0]
+            m=args.gq[1]
+            print "generate random query" 
+            jid=cloud.call(query_generator, le, m, _vol="dna-db")
+            cloud.join(jid)
+            print 'job took %0.3f s' % (cloud.info(jid).get(jid).get('runtime'))
+            print cloud.info(jid).get(jid).get('stdout').strip()
+            query = cloud.result(jid)
+            print query
+            if args.eq==0: 
+                print "execute query on binary mode"
+                jid=cloud.call(handle_query_0, query, path_, file_e_0, _vol="dna-db")
+                cloud.join(jid)
+                print 'job took %0.3f ms' % (cloud.info(jid).get(jid).get('runtime')*1000)
+                print cloud.info(jid).get(jid).get('stdout').strip()
+                res=cloud.result(jid)
+                print res.count(0)
+            elif args.eq==1: 
+                print "execute query on quaternary mode"
+                jid=cloud.call(handle_query_1, query, path_, file_e_1, _vol="dna-db")
+                cloud.join(jid)
+                print 'job took %0.3f ms' % (cloud.info(jid).get(jid).get('runtime')*1000)
+                print cloud.info(jid).get(jid).get('stdout').strip()
+                res=cloud.result(jid)
+                print res.count(0)
+            if args.verify: 
+                print "verification on clear database"
+                jid = cloud.call(handle_query_clear, query, path_, file_, _vol="dna-db")
+                cloud.join(jid)
+                print 'job took %0.3f ms' % (cloud.info(jid).get(jid).get('runtime')*1000)
+                print cloud.info(jid).get(jid).get('stdout').strip()
+                print cloud.result(jid)
+        if args.eq!=None and args.gq ==None: 
+            print "sorry! -eq must be coupled with -gq"         
+    else: 
+        print "running locally"
+        path_="dna-db/"
+        if args.gk:
+            bitlength=args.gk
+            print generate_keys(path_, bitlength)
+        if args.gd: 
+            n=args.gd[0]
+            m=args.gd[1]
+            print generate_database(path_, file_, n, m) 
+        if args.ed==0: 
+            print "encrypt database using binary mode"
+            print encrypt_database_0(path_, file_, file_e_0)
+        elif args.ed==1: 
+            print "encrypt database using quaternary mode"
+            print encrypt_database_1(path_, file_, file_e_1)
+        if args.dd==0: 
+            print "decrypt database from binary mode"
+            decrypt_database_0(path_, file_e_0, file_d_0)
+        elif  args.dd==1:
+            print "decrypt database from quaternary mode"
+            decrypt_database_1(path_, file_e_1, file_d_1)
+        if args.gq:
+            le=args.gq[0] 
+            m=args.gq[1] 
+            print "generate random query"
+            query = query_generator(le,m)
+#            print query
+            if args.eq==0: 
+                print "execute query on binary mode"
+                res=handle_query_0 (query, path_, file_e_0).count(0)
+                print res 
+            elif args.eq==1: 
+                print "execute query on quaternary mode"
+                res=handle_query_1 (query, path_, file_e_1).count(0)
+                print res
+            if args.verify: 
+                print "verification on clear database"
+                print handle_query_clear (query, path_, file_)
+                
+        if args.eq!=None and args.gq ==None: 
+            print "sorry! -eq must be coupled with -gq"    
         
