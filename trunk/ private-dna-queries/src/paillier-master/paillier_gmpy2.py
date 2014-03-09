@@ -1,7 +1,7 @@
 import random, sys 
 from primes_gmpy2 import generate_prime
 
-from gmpy2 import mpz, powmod, invert, is_prime, random_state, mpz_urandomb, rint_round, log2
+from gmpy2 import mpz, powmod, invert, is_prime, random_state, mpz_urandomb, rint_round, log2, gcd 
 
 rand=random_state(random.randrange(sys.maxint))
 
@@ -29,6 +29,10 @@ def encrypt(pub, plain):
 #        if r > 0 and r < pub.n:
 #            break
     r=mpz_urandomb(rand, pub.bits)
+#        if gcd(r,pub.n)==1:
+#            break
+#        else: 
+#            print r
     x = powmod(r, pub.n, pub.n_sq)
     cipher = (powmod(pub.g, plain, pub.n_sq) * x) % pub.n_sq
     return cipher

@@ -8,6 +8,7 @@ import cloud
 import time 
 import random
 import sys
+from gmpy2 import mpz
 sys.path.append("paillier-master")
 from paillier_gmpy2 import generate_keypair, encrypt, decrypt, e_add, e_mul_const,\
     e_add_const
@@ -63,37 +64,30 @@ def encrypt_database_1(path_, file_, file_e_):
     n,m = in_.readline().split()
     n=int(n)
     m=int(m)
-    hA = [[0]*m for x in xrange(n)]
-    hC = [[0]*m for x in xrange(n)]
-    hG = [[0]*m for x in xrange(n)]
-    hT = [[0]*m for x in xrange(n)]
-    x=0
+    out_= open(path_+file_e_,'w')
+    out_.write("%s %s\n" %(n, 4*m))
     for line in in_:
         y=0
         for char in line.strip():
             if char =='A':
-                hA[x][y]=encrypt(pub, 1)
+                out_.write("%s\n"%encrypt(pub, 1))
             else:
-                hA[x][y]=encrypt(pub, 0)
+                out_.write("%s\n"%encrypt(pub, 0))
             if char =='C':
-                hC[x][y]=encrypt(pub, 1)
+                out_.write("%s\n"%encrypt(pub, 1))
             else:
-                hC[x][y]=encrypt(pub, 0)
+                out_.write("%s\n"%encrypt(pub, 0))
             if char =='G':
-                hG[x][y]=encrypt(pub, 1)
+                out_.write("%s\n"%encrypt(pub, 1))
             else:
-                hG[x][y]=encrypt(pub, 0)
+                out_.write("%s\n"%encrypt(pub, 0))
             if char =='T':
-                hT[x][y]=encrypt(pub, 1)
+                out_.write("%s\n"%encrypt(pub, 1))
             else:
-                hT[x][y]=encrypt(pub, 0)
-            y+=1
-        x+=1
+                out_.write("%s\n"%encrypt(pub, 0))
 #    for x in hA: 
 #        print x 
-    out_= open(path_+file_e_,'wb')
-    pickle.dump("%d %d\n" % (n, m), out_ )
-    pickle.dump([hA,hC,hG,hT], out_)
+
     out_.close()
     in_.close()
     return file_e_
@@ -108,36 +102,28 @@ def encrypt_database_0(path_, file_, file_e_): # n is the nb of seqs, m is the l
     n,m = in_.readline().split()
     n=int(n)
     m=int(m)
-    henc = [[0 for y in range(2*m)] for x in range(n)]
     x=0
+    out_= open(path_+file_e_,'w')
+    out_.write("%s %s\n" %(n, 2*m))
     for line in in_:
         #print line 
-        y=0
         for char in line:
             if char =='A':
                 #encrypt 00 
-                henc[x][y]=encrypt(pub, 0)
-                henc[x][y+1]=encrypt(pub, 0)
-                y+=2
+                out_.write("%s\n" % encrypt(pub, 0))
+                out_.write("%s\n" % encrypt(pub, 0))
             elif char=='C':
                 #encrypt 01 
-                henc[x][y]=encrypt(pub, 0)
-                henc[x][y+1]=encrypt(pub, 1)
-                y+=2
+                out_.write("%s\n" % encrypt(pub, 0))
+                out_.write("%s\n" % encrypt(pub, 1))
             elif char=='G':
                 #encrypt 10 
-                henc[x][y]=encrypt(pub, 1)
-                henc[x][y+1]=encrypt(pub, 0)
-                y+=2
+                out_.write("%s\n" % encrypt(pub, 1))
+                out_.write("%s\n" % encrypt(pub, 0))
             elif char=='T':
                 #encrypt 11 
-                henc[x][y]=encrypt(pub, 1)
-                henc[x][y+1]=encrypt(pub, 1)
-                y+=2
-        x+=1
-    out_= open(path_+file_e_,'wb')
-    pickle.dump("%d %d\n" % (n, m), out_ )
-    pickle.dump(henc, out_)
+                out_.write("%s\n" % encrypt(pub, 1))
+                out_.write("%s\n" % encrypt(pub, 1))
     out_.close()
     in_.close()
     return file_e_
@@ -150,14 +136,15 @@ def decrypt_database_0(path_, file_, file_d_):
     buf=open(path_+"priv.txt",'rb') 
     priv=pickle.load(buf)
     buf.close()
-    in_ = open(path_+file_, 'rb')
-    print pickle.load(in_).strip()
-    henc=pickle.load(in_)
+    in_ = open(path_+file_, 'r')
+    n, m =in_.readline().split()
+    n=int(n)
+    m=int(m)/2
     out_ =open(path_+file_d_, 'w')
-    for x in range( len(henc)): 
-        for y in range(0, len(henc[0]), 2): 
-            a=decrypt(priv,pub, henc[x][y])
-            b=decrypt(priv,pub, henc[x][y+1]) 
+    for x in range(n): 
+        for y in range(0, 2*m, 2): 
+            a=decrypt(priv,pub, mpz(in_.readline()))
+            b=decrypt(priv,pub, mpz(in_.readline())) 
             letter=''
             if a==0 and b==0:
                 letter='A'
@@ -183,25 +170,31 @@ def decrypt_database_1(path_, file_, file_d_):
     buf=open(path_+"priv.txt",'rb') 
     priv=pickle.load(buf)
     buf.close()
-    in_ = open(path_+file_, 'rb')
-    print pickle.load(in_).strip()
-    [hA, hC, hG, hT] =pickle.load(in_)
+    in_ = open(path_+file_, 'r')
+    n, m =in_.readline().split()
+    n=int(n)
+    m=int(m)/4
 #    for x in hA:
 #        print x 
     out_ =open(path_+file_d_, 'w')
-    
-    for x in range(len(hA)): 
-        for y in range(len(hA[0])): 
-            if decrypt(priv,pub, hA[x][y])==1: 
+    for x in range(n): 
+        for y in range(m): 
+            if decrypt(priv, pub, mpz(in_.readline()))==1:
                 out_.write('A')
+                in_.readline()
+                in_.readline()
+                in_.readline()
 #                print 'A',
-            elif decrypt(priv,pub, hC[x][y])==1:
+            elif decrypt(priv, pub, mpz(in_.readline()))==1:
                 out_.write('C')
+                in_.readline()
+                in_.readline()
 #                print 'C',
-            elif decrypt(priv,pub, hG[x][y])==1:
+            elif decrypt(priv, pub, mpz(in_.readline()))==1:
                 out_.write('G')
+                in_.readline()
 #                print 'G',
-            elif decrypt(priv,pub, hT[x][y])==1:
+            elif decrypt(priv, pub, mpz(in_.readline()))==1:
                 out_.write('T')
 #                print 'T',
         out_.write("\n")
@@ -227,7 +220,7 @@ def query_generator(le, m):
     return q
 
 @timing 
-def decrypt_query_res_1(res, path_):
+def decrypt_query_res(res, path_):
     buf=open(path_+"pub.txt",'rb')
     pub=pickle.load(buf)
     buf.close()
@@ -241,87 +234,117 @@ def decrypt_query_res_1(res, path_):
 
 @timing
 def handle_query_1(query, path_, file_e_):
-    in_=open(path_+file_e_, 'rb')
-    print pickle.load(in_).strip()
-    [hA,hC,hG,hT]=pickle.load(in_)
-    in_.close()
+    in_=open(path_+file_e_, 'r')
+    n, m =in_.readline().split()
+    n=int(n)
+    m=int(m)/4
     buf=open(path_+"pub.txt",'rb')
     pub=pickle.load(buf)
     buf.close()
 #    buf=open(path_+"priv.txt",'rb')
 #    priv=pickle.load(buf)
 #    buf.close()
-    res=[0]*len(hA) #equal to the number of seq 
-    for i in range(len(hA)):
+#    print query 
+    query.sort(key=lambda x: x[1])
+#    print query
+    res=[0]*n #equal to the number of seq 
+#    counter=0
+    for i in range(n):
         acc=1
+        old_pos=0
         for (letter, pos) in query:
+            for j in range(old_pos, pos):
+                in_.readline()
+                in_.readline()
+                in_.readline()
+                in_.readline()
+#                counter+=4
+#            print counter
+            old_pos=pos+1
             if letter=='A': 
-                acc= e_add(pub, acc, hA[i][pos])
+                acc= e_add(pub, acc, mpz(in_.readline()))
+                in_.readline()
+                in_.readline()
+                in_.readline()
             elif letter=='C':
-                acc= e_add(pub, acc, hC[i][pos])
+                in_.readline()
+                acc= e_add(pub, acc, mpz(in_.readline()))
+                in_.readline()
+                in_.readline()
             elif letter=='G':
-                acc= e_add(pub, acc, hG[i][pos])
+                in_.readline()
+                in_.readline()
+                acc= e_add(pub, acc, mpz(in_.readline()))
+                in_.readline()
             elif letter=='T':
-                acc= e_add(pub, acc, hT[i][pos])
+                in_.readline()
+                in_.readline()
+                in_.readline()
+                acc= e_add(pub, acc, mpz(in_.readline()))
+#            counter+=4
+#            print counter 
+        for j in range(4*pos+4, 4*m):
+            in_.readline()
+#            counter+=1
+#        print counter
         res[i]=e_mul_const(pub, e_add_const(pub, acc, pub.n-len(query)), random.randrange(pub.n))
-    return decrypt_query_res_1(res, path_)
+    in_.close()
+    return decrypt_query_res(res, path_)
 
-@timing
-def decrypt_query_res_0(res, path_):
-    buf=open(path_+"pub.txt",'rb')
-    pub=pickle.load(buf)
-    buf.close()
-    buf=open(path_+"priv.txt",'rb')
-    priv=pickle.load(buf)
-    buf.close()
-    dres=[0]*len(res)
-    for i in range(len(res)): 
-        dres[i]=decrypt(priv, pub, res[i])
-    return dres
+
 
 @timing 
 def handle_query_0(query, path_, file_e_):
-    in_=open(path_+file_e_, 'rb')
-    print pickle.load(in_).strip()
-    henc=pickle.load(in_)
-    in_.close()
+    in_=open(path_+file_e_, 'r')
+    n, m =in_.readline().split()
+    n=int(n)
+    m=int(m)/2 
     buf=open(path_+"pub.txt",'rb')
     pub=pickle.load(buf)
     buf.close()
 #    buf=open(path_+"priv.txt",'rb')
 #    priv=pickle.load(buf)
 #    buf.close()
-    res=[0]*len(henc)
+    res=[0]*n
+    query.sort(key=lambda x: x[1])
     i=0
-    for seq in henc:
+    for seq in range(n):
         acc_0=1
         acc_1=1 
         t=0
+        old_pos=0
         for (letter, pos) in query:
 #            print letter, pos
 #            print decrypt(priv, pub, seq[2*pos]), decrypt(priv, pub, seq[2*pos+1])
 #            break
+            for j in range(old_pos, pos): 
+                in_.readline()
+                in_.readline()
+            old_pos=pos+1
             if letter=='A': 
-                acc_0=e_add(pub, acc_0, seq[2*pos])
-                acc_0=e_add(pub, acc_0, seq[2*pos+1])
+                acc_0=e_add(pub, acc_0, mpz(in_.readline()))
+                acc_0=e_add(pub, acc_0, mpz(in_.readline()))
             elif letter=='C':
-                acc_0=e_add(pub, acc_0, seq[2*pos])
-                acc_1=e_add(pub, acc_1, seq[2*pos+1])
+                acc_0=e_add(pub, acc_0, mpz(in_.readline()))
+                acc_1=e_add(pub, acc_1, mpz(in_.readline()))
                 t+=1
             elif letter=='G':
-                acc_1=e_add(pub, acc_1, seq[2*pos])
-                acc_0=e_add(pub, acc_0, seq[2*pos+1]) 
+                acc_1=e_add(pub, acc_1, mpz(in_.readline()))
+                acc_0=e_add(pub, acc_0, mpz(in_.readline())) 
                 t+=1
             elif letter=='T': 
-                acc_1=e_add(pub, acc_1, seq[2*pos])
-                acc_1=e_add(pub, acc_1, seq[2*pos+1])
+                acc_1=e_add(pub, acc_1, mpz(in_.readline()))
+                acc_1=e_add(pub, acc_1, mpz(in_.readline()))
                 t+=2
-            res[i]=e_add(pub, e_mul_const(pub, acc_0, random.randrange(pub.n)),
+        res[i]=e_add(pub, e_mul_const(pub, acc_0, random.randrange(pub.n)),
                          e_mul_const(pub, 
                                      e_add_const(pub, acc_1,  pub.n-t), 
                                      random.randrange(pub.n)))
         i+=1
-    return decrypt_query_res_0(res, path_)
+        for j in range(2*pos+2, 2*m):
+            in_.readline()
+    in_.close()
+    return decrypt_query_res(res, path_)
 
 @timing
 def handle_query_clear(query, path_, file_):

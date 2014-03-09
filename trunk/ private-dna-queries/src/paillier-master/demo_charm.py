@@ -40,8 +40,9 @@ def test_e_add(e):
 def test_e_add_cnst(e,l):
     e_add_cnst_tab=[0]*100
     for i in range(100):
-        x=pai.encrypt(public_key, l[i])
-        e_add_cnst_tab[i]=e[i] + x
+#        x=pai.encrypt(public_key, l[i])
+#        e_add_cnst_tab[i]= e[i] + x
+        e_add_cnst_tab[i]= e[i]+ l[i]
     return e_add_cnst_tab
 
 def test_e_mul_cnst(e,l):
@@ -57,39 +58,39 @@ def test(bitlength):
     pai = Pai99(group)
     (public_key, secret_key) = pai.keygen(bitlength) # default is 1024
     time2=time.time()
-    print time2-time1
+    print "key generation %.3f ms" % ((time2-time1)*1000)
     l=[0]*100
     for i in range(100):
         x=random.randrange(sys.maxint)
-        print x,
+#        print x,
         l[i]=x
     print
     t_test_encrypt=timing(test_encrypt)
     e= t_test_encrypt(l)
-    t_test_decrypt=timing(test_decrypt)
-    d= t_test_decrypt(e)
-    for i in range(100): 
-        print  int(d[i]),
-    print 
-    test=True
-    for i in range(100): 
-        if l[i]!=d[i]:
-            print i, l[i], d[i]
-            test=False
-            break
-    print "test is %s" % test
+#    t_test_decrypt=timing(test_decrypt)
+#    d= t_test_decrypt(e)
+#    for i in range(100): 
+#        print  int(d[i]),
+#    print 
+#    test=True
+#    for i in range(100): 
+#        if l[i]!=d[i]:
+#            print i, l[i], d[i]
+#            test=False
+#            break
+#    print "test is %s" % test
 
     
-    t_test_e_add=timing(test_e_add)
-    e_add_tab=t_test_e_add(e)
+#    t_test_e_add=timing(test_e_add)
+#    e_add_tab=t_test_e_add(e)
     t_test_e_add_cnst=timing(test_e_add_cnst)
     e_add_cnst_tab=t_test_e_add_cnst(e, l)
-    t_test_e_mul_cnst=timing(test_e_mul_cnst)
-    e_mul_cnst_tab=t_test_e_mul_cnst(e, l)
+#    t_test_e_mul_cnst=timing(test_e_mul_cnst)
+#    e_mul_cnst_tab=t_test_e_mul_cnst(e, l)
 #    for i in range(100): 
 #        print int(d[i])+l[i], int(pai.decrypt(public_key, secret_key, e_add_cnst_tab[i]))
 if __name__ == '__main__':
-    test(64)
+    test(512)
     
     
 #msg_1=12345678987654321
