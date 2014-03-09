@@ -1,3 +1,8 @@
+'''
+Created on Feb 25, 2014
+
+@author: NASSAR
+'''
 from charm.toolbox.integergroup import RSAGroup
 from charm.schemes.pkenc.pkenc_paillier99 import Pai99
 import random, sys, time  

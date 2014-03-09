@@ -1,3 +1,8 @@
+'''
+Created on Feb 25, 2014
+
+@author: NASSAR
+'''
 import random, sys 
 from primes_gmpy2 import generate_prime
 

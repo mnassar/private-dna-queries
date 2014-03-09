@@ -1,3 +1,8 @@
+'''
+Created on Feb 25, 2014
+
+@author: NASSAR
+'''
 import random
 import sys
 from gmpy2 import mpz, powmod, invert, is_prime, random_state, mpz_urandomb

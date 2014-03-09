@@ -1,4 +1,8 @@
-#!/usr/bin/env python
+'''
+Created on Feb 25, 2014
+
+@author: NASSAR
+'''
 
 from paillier_gmpy2 import *
 #from paillier import *
