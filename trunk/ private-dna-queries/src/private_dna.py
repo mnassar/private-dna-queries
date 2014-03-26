@@ -179,9 +179,10 @@ def decrypt_database_1(path_, file_, file_d_):
     out_ =open(path_+file_d_, 'w')
     for x in range(n): 
         for y in range(m): 
+            # we stop as soon as we find a 1 
             if decrypt(priv, pub, mpz(in_.readline()))==1:
                 out_.write('A')
-                in_.readline()
+                in_.readline() 
                 in_.readline()
                 in_.readline()
 #                print 'A',
@@ -194,7 +195,9 @@ def decrypt_database_1(path_, file_, file_d_):
                 out_.write('G')
                 in_.readline()
 #                print 'G',
-            elif decrypt(priv, pub, mpz(in_.readline()))==1:
+            else:# decrypt(priv, pub, mpz(in_.readline()))==1:
+                # this is a 'G' for sure, no need to decrypt 
+                in_.readline()
                 out_.write('T')
 #                print 'T',
         out_.write("\n")
