@@ -251,6 +251,7 @@ def handle_query_1(query, path_, file_e_):
     query.sort(key=lambda x: x[1])
 #    print query
     res=[0]*n #equal to the number of seq 
+    significant_time_=[0]*n
 #    counter=0
     for i in range(n):
         acc=1
@@ -265,33 +266,45 @@ def handle_query_1(query, path_, file_e_):
 #            print counter
             old_pos=pos+1
             if letter=='A': 
+                st_=time.time()
                 acc= e_add(pub, acc, mpz(in_.readline()))
+                significant_time_[i]+=time.time()-st_
                 in_.readline()
                 in_.readline()
                 in_.readline()
             elif letter=='C':
                 in_.readline()
+                st_=time.time()
                 acc= e_add(pub, acc, mpz(in_.readline()))
+                significant_time_[i]+=time.time()-st_
                 in_.readline()
                 in_.readline()
             elif letter=='G':
                 in_.readline()
                 in_.readline()
+                st_=time.time()
                 acc= e_add(pub, acc, mpz(in_.readline()))
+                significant_time_[i]+=time.time()-st_
                 in_.readline()
             elif letter=='T':
                 in_.readline()
                 in_.readline()
                 in_.readline()
+                st_=time.time()
                 acc= e_add(pub, acc, mpz(in_.readline()))
+                significant_time_[i]+=time.time()-st_
 #            counter+=4
 #            print counter 
         for j in range(4*pos+4, 4*m):
             in_.readline()
 #            counter+=1
 #        print counter
+        st_=time.time()
         res[i]=e_mul_const(pub, e_add_const(pub, acc, pub.n-len(query)), random.randrange(pub.n))
+        significant_time_[i]+=time.time()-st_
+        #print significant_time_[i]
     in_.close()
+    print "sum significant query time = %f s" % (sum(significant_time_))
     return decrypt_query_res(res, path_)
 
 
@@ -309,6 +322,7 @@ def handle_query_0(query, path_, file_e_):
 #    priv=pickle.load(buf)
 #    buf.close()
     res=[0]*n
+    significant_time_=[0]*n
     query.sort(key=lambda x: x[1])
     i=0
     for seq in range(n):
@@ -316,6 +330,7 @@ def handle_query_0(query, path_, file_e_):
         acc_1=1 
         t=0
         old_pos=0
+        
         for (letter, pos) in query:
 #            print letter, pos
 #            print decrypt(priv, pub, seq[2*pos]), decrypt(priv, pub, seq[2*pos+1])
@@ -324,29 +339,42 @@ def handle_query_0(query, path_, file_e_):
                 in_.readline()
                 in_.readline()
             old_pos=pos+1
+            
             if letter=='A': 
+                st_=time.time()
                 acc_0=e_add(pub, acc_0, mpz(in_.readline()))
                 acc_0=e_add(pub, acc_0, mpz(in_.readline()))
+                significant_time_[i]+=time.time()-st_
             elif letter=='C':
+                st_=time.time()
                 acc_0=e_add(pub, acc_0, mpz(in_.readline()))
                 acc_1=e_add(pub, acc_1, mpz(in_.readline()))
+                significant_time_[i]+=time.time()-st_
                 t+=1
             elif letter=='G':
+                st_=time.time()
                 acc_1=e_add(pub, acc_1, mpz(in_.readline()))
-                acc_0=e_add(pub, acc_0, mpz(in_.readline())) 
+                acc_0=e_add(pub, acc_0, mpz(in_.readline()))
+                significant_time_[i]+=time.time()-st_ 
                 t+=1
             elif letter=='T': 
+                st_=time.time()
                 acc_1=e_add(pub, acc_1, mpz(in_.readline()))
                 acc_1=e_add(pub, acc_1, mpz(in_.readline()))
+                significant_time_[i]+=time.time()-st_
                 t+=2
+        st_=time.time()
         res[i]=e_add(pub, e_mul_const(pub, acc_0, random.randrange(pub.n)),
                          e_mul_const(pub, 
                                      e_add_const(pub, acc_1,  pub.n-t), 
                                      random.randrange(pub.n)))
+        significant_time_[i]+=time.time()-st_
         i+=1
         for j in range(2*pos+2, 2*m):
             in_.readline()
+    
     in_.close()
+    print "sum significant query time = %f s" % (sum(significant_time_))
     return decrypt_query_res(res, path_)
 
 @timing
