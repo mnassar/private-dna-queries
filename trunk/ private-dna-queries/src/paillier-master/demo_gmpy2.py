@@ -5,11 +5,11 @@ Created on Feb 25, 2014
 '''
 
 from paillier_gmpy2 import *
-#from paillier import *
 
 import sys 
 import random
 import time 
+
 
 def timing(f, c=0):
     def wrap(*args):
@@ -42,28 +42,32 @@ def test_e_add(e,size):
     e_add_tab=[0]*(size-1)
     for i in range(size-1):
         e_add_tab[i]= e_add(pub, e[i], e[i+1])
-#        print e_add_tab[i]
-#    for x in e_add_tab:
-#        print str(x)
     return e_add_tab    
 
 def test_e_add_cnst(e,l, size):
     e_add_cnst_tab=[0]*size
     for i in range(size):
-        e_add_cnst_tab[i]=e_add_const(pub, e[i], l[i])
+        e_add_cnst_tab[i]=e_add_const(pub, e[i], random.randrange(pub.n))
     return e_add_cnst_tab
 
 def test_e_mul_cnst(e,l, size):
     e_mul_cnst_tab=[0]*size
     for i in range(size):
-        e_mul_cnst_tab[i]=e_mul_const(pub, e[i], l[i])
+        e_mul_cnst_tab[i]=e_mul_const(pub, e[i], random.randrange(pub.n))
     return e_mul_cnst_tab
+
+def test_e_inv(e, size):
+    e_inv_tab=[0]*size
+    for i in range(size):
+        e_inv_tab[i]=invert(e[i], pub.n_sq)
+    return e_inv_tab
 
 def test(bitlength, size):    
     global priv, pub 
     print "Generating keypair... %d bits" % bitlength
     time1=time.time()
     priv, pub = generate_keypair(bitlength)
+    #print pub.n
     time2=time.time()    
     print "%.3f ms" % ((time2-time1)*1000)
     l=[0]*size
@@ -91,13 +95,20 @@ def test(bitlength, size):
     e_add_cnst_tab=t_test_e_add_cnst(e, l, size)
     t_test_e_mul_cnst=timing(test_e_mul_cnst)
     e_add_mul_tab=t_test_e_mul_cnst(e, l, size)
-
-if __name__ == '__main__':
-    test(1024, 1000)
-
+    t_test_e_inv=timing(test_e_inv)
+    e_inv_tab=t_test_e_inv(e, size)
+#    for i in range(4):
+#        print decrypt(priv, pub, e_inv_tab[i]) == pub.n-l[i]
         
+if __name__ == '__main__':
+#    you can use test(bitlength, x) that performs x basic operations on x random operands 
+    test(1024, 100)
     
+
+#    print "Generating keypair... %d bits" % 512
+#    priv, pub = generate_keypair(512)
 #    x = 3
+#    print "x =", x
 #    print "Encrypting x..."
 #    cx = encrypt(pub, x)
 #    print "cx =", cx
