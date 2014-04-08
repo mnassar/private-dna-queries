@@ -34,7 +34,7 @@ def test_decrypt(e,size):
     d=[0]*size
     for i in range(size):
         d[i]=decrypt(priv, pub, e[i]) 
-        print d[i], 
+       # print d[i], 
     print 
     return d 
 
@@ -73,7 +73,7 @@ def test(bitlength, size):
     l=[0]*size
     for i in range(size):
         x=random.randrange(sys.maxint)
-        print x,
+       # print x,
         l[i]=x
     print
     t_test_encrypt=timing(test_encrypt)
@@ -102,7 +102,7 @@ def test(bitlength, size):
         
 if __name__ == '__main__':
 #    you can use test(bitlength, x) that performs x basic operations on x random operands 
-    test(1024, 100)
+    test(1024, 1000)
     
 
 #    print "Generating keypair... %d bits" % 512
