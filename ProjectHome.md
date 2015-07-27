@@ -1,0 +1,1 @@
+The project allows querying a private DNA database where the DNA records are not known to both the database provider (e.g. the cloud) and the client (e.g. the biomedical researcher). The client receives the answer to the query in an aggregated form without revealing which exact records match.
